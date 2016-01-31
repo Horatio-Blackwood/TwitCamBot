@@ -13,7 +13,7 @@ class Tweeter(object):
 		self.api = Twython(consumer_key, consumer_secret, accessToken, accessTokenSecret)
 		
 	
-	def upload(image):
+	def upload(self, image):
 		""" Uploads the supplied image object to Twitter and returns
 			a Media Status object.
 		
@@ -23,8 +23,8 @@ class Tweeter(object):
 		return self.api.upload_media(media=image)
 	
 	
-	def tweet(media_status, text):
+	def tweet(self, media_status, text):
 		""" Posts a tweet with the supplied media_status (pictures etc) 
 			and text.
 		"""
-		api.update_status(media_ids=[media_status['media_id']], status=text)
+		self.api.update_status(media_ids=[media_status['media_id']], status=text)

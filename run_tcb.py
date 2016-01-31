@@ -16,6 +16,7 @@ from configuration import MessageConfig
 
 
 def configure_gpio():
+	print("Configuring GPIO...")
 	# Read in GPIO Configuration
 	gpio_config = GpioConfig()
 	
@@ -27,13 +28,16 @@ def configure_gpio():
 	GPIO.setup(gpio_config.busy_pin, GPIO.OUT) 
 	
 	# Set up Button pins for GPIO Input
-	GPIO.setup(gpio_config.button_pin, GPIO.IN, GPIO.PUD_UP)
+	GPIO.setup(gpio_config.button_pin, GPIO.IN, pull_up_down=GPIO.PUD_UP)
 	
+	print("Done.")
 	return gpio_config
 	
 def get_next_pic_name(cam_cfg, pic_number):
-	name = cam_cfg.img_name + pic_number + "." + cam_cfg.img_ext
+	print("Getting next pic name.")
+	name = cam_cfg.img_name + str(pic_number) + "." + cam_cfg.img_ext
 	pic_number += 1
+	print("Name generated:  ", name)
 	return name
 
 
@@ -53,31 +57,38 @@ def main():
 	
 	# - Initialize message configuration
 	msg_config = MessageConfig()
+
+	try:
+		while True:
+			# When Button is Pressed
+			print("Waiting for user to press button...")
+			GPIO.wait_for_edge(gpio_config.button_pin, GPIO.RISING)
+			GPIO.output(gpio_config.ready_pin, False)
+			GPIO.output(gpio_config.busy_pin, True)
+			
+			# Capture Image
+			pic_file = get_next_pic_name(cam_config, pic_number)
+			camera.take_picture(cam, pic_file)
+			pic = open(pic_file, 'rb')
+			
+			# Upload picture to Twitter
+			media_status = tweeter.upload(pic)
+			
+			# Once Image is uploaded, Post to Twitter
+			tweeter.tweet(media_status, msg_config.msg)
+			
+			# When finished, reset LEDs.
+			GPIO.output(gpio_config.ready_pin, True)
+			GPIO.output(gpio_config.busy_pin, False)
+			
+	except KeyboardInterrupt:
+		# Message
+		print("User exited via Keyboard Interrupt.")
 	
-	# Listen for Button Presses
-	while True:
-		# When Button is Pressed
-		GPIO.wait_for_edge(gpio_config.button_pin, GPIO.RISING)
-		GPIO.output(gpio_config.ready_pin, False)
-		GPIO.output(gpio_config.busy_pin, True)
-		
-		# Capture Image
-		pic_file = get_next_pic_name(cam_config, pic_number)
-		camera.take_picture(cam, pic_file)
-		pic = open(pic_file, 'rb')
-		
-		# Upload picture to Twitter
-		media_status = tweeter.upload(pic)
-		
-		# Once Image is uploaded, Post to Twitter
-		tweeter.tweet(media_status, msg_config.msg)
-		
-		# When finished, reset LEDs.
-		GPIO.output(gpio_config.ready_pin, True)
-		GPIO.output(gpio_config.busy_pin, False)
-		
-	# Cleanup/Disconnect the Camera (The code should never get here tho)
-	camera.cleanup_camera()
+	finally:
+		# Cleanup/Disconnect the Camera (The code should never get here tho)
+		camera.cleanup_camera(cam)
+		GPIO.cleanup()
 
 # Run Main Method
 if __name__ == "__main__":

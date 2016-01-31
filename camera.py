@@ -3,6 +3,7 @@
 # Module:       camera.py
 # Python:       3.4.2
 
+import picamera
 
 def initialize(img_width, img_height):
 	

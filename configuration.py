@@ -21,9 +21,9 @@ class TwitterConfig(object):
 class GpioConfig(object):
     """ A class that holds the GPIO pin configuration
     """
-    cam_button_pin = config.getint('gpio', 'cam_button_pin')
-    ready_pin      = config.getint('gpio', 'ready_pin')
-    busy_pin       = config.getint('gpio', 'busy_pin')
+    button_pin = config.getint('gpio', 'button_pin')
+    ready_pin  = config.getint('gpio', 'ready_pin')
+    busy_pin   = config.getint('gpio', 'busy_pin')
 
 
 class CamConfig(object):
@@ -36,6 +36,6 @@ class CamConfig(object):
 
 
 class MessageConfig(object):
-	""" A class for the message configuration.
-	"""
-	msg = config.get('message', 'msg')
+    """ A class for the message configuration.
+    """
+    msg = config.get('message', 'msg')
